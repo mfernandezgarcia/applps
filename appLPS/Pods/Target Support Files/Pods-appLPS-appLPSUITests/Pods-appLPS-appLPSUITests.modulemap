@@ -1,0 +1,6 @@
+framework module Pods_appLPS_appLPSUITests {
+  umbrella header "Pods-appLPS-appLPSUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}
