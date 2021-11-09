@@ -13,47 +13,67 @@ struct RegistroView: View {
     @State var password:String = ""
     @State var signUpDone: Bool = false
     @State var errorFound: String = ""
-    let firebaseController = FirebaseController()
-
+    @State var error: Bool = false
+    @State var loading = false
+        
+    @EnvironmentObject var session: FirebaseController
+    
     var body: some View {
-        Form {
-            TextField("Introduce correo" , text: $email)
-            TextField("Introduce contraseña" , text: $password)
-            
-            HStack {
-                Button() {
-                    signUp(email: email, password: password)
-                } label: {
-                    Text("Registro")
+        NavigationView {
+            VStack {
+                Form {
+                    TextField("Introduce correo" , text: $email).textCase(.lowercase)                
+                    SecureField("Introduce contraseña" , text: $password)
+
+                    HStack {
+                        
+                       
+                        Button() {
+                            signUp()
+                        } label: {
+                            Text("Registro")
+                        }
+
+                    }
+                    
+                                        
+                    if !errorFound.isEmpty {
+                        Text(self.errorFound)
+                    } else if (signUpDone) {
+                        Text("Sign up done correctly. Please login")
+                    }
+                    
+
                 }
-            }
-            
-            if !errorFound.isEmpty {
-                if !signUpDone {
-                    Text(self.errorFound)
-                } else {
-                    Text("Registro hecho")
+            }.navigationTitle("Sign Up")
+                .onAppear {
+                    self.signUpDone = false
+                    self.password = ""
+                    self.email = ""
+                    self.errorFound = ""
                 }
-            }
+            
         }
     }
     
-    func signUp(email: String, password: String) {
-        if ( !email.isEmpty &&  !password.isEmpty ) {
-            Auth.auth().createUser(withEmail: email, password: password) {
-                authResult, error in
-                if (error != nil) {
-                    signUpDone = false
-                    self.errorFound = error?.localizedDescription ?? ""
-                } else {
-                    self.signUpDone = true
+    
+    func signUp () {
+        signUpDone = false
+        errorFound = ""
+        loading = true
+        error = false
+        session.signUp(email: email, password: password) { (result, error) in
+            self.loading = false
+            if error != nil {
+                self.error = true
+                self.errorFound = error?.localizedDescription ?? ""
 
-                }
+            } else {
+                self.email = ""
+                self.password = ""
+                self.signUpDone = true
             }
         }
-        print("Antes del return")
-        print(self.errorFound)
-
     }
 }
 

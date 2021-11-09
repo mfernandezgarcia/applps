@@ -13,42 +13,67 @@ struct LoginView: View {
     @State var password:String = ""
     @State var signInDone: Bool = false
     @State var errorFound: String = ""
-    let firebaseController = FirebaseController()
+    @State var error: Bool = false
+    @State var loading = false
+    
+    @EnvironmentObject var session: FirebaseController
+
     
     var body: some View {
         
-        Form {
-            TextField("Introduce correo" , text: $email)
-            TextField("Introduce contraseña" , text: $password)
-            
-            HStack {
-                Button() {                    
-                    login(email: email, password: password)
-                } label: {
-                    Text("Iniciar sesion")
+        NavigationView {
+            VStack {
+                Form {
+                    TextField("Introduce correo" , text: $email).textCase(.lowercase)
+                    SecureField("Introduce contraseña" , text: $password)
+                    
+                    HStack {
+                        NavigationLink(destination:  MainView(), isActive: self.$signInDone) {
+                            Text("Iniciar sesion").onTapGesture {
+                                login()
+                            }
+                        }.disabled(email.isEmpty || password.isEmpty )
+                    }
+                    
+                    NavigationLink(destination:  RegistroView()) {
+                        Button() {
+                        } label: {
+                            Text("Registrarse")
+                        }
+                    }
+                    
+                    if !errorFound.isEmpty {
+                        if !signInDone {
+                            Text(self.errorFound)
+                        } else {
+                            Text("Inicio de sesión hecho")
+                        }
+                    }
                 }
-            }
-            
-            if !errorFound.isEmpty {
-                if !signInDone {
-                    Text(self.errorFound)
-                } else {
-                    Text("Inicio de sesión hecho")
+                
+            }.navigationTitle("Log in")
+                .onAppear {
+                    self.password = ""
+                    self.email = ""
+                    self.errorFound = ""
                 }
-            }
+            
         }
     }
     
-    func login(email: String, password: String) {
-        if ( !email.isEmpty &&  !password.isEmpty ) {
-            Auth.auth().signIn(withEmail: email, password: password) {
-                authResult, error in
-                if (error != nil) {
-                    signInDone = false
-                    self.errorFound = error?.localizedDescription ?? ""
-                } else {
-                    self.signInDone = true
-                }
+    func login () {
+        loading = true
+        error = false
+        session.signIn(email: email, password: password) { (result, error) in
+            self.loading = false
+            if error != nil {
+                self.error = true
+                self.errorFound = error?.localizedDescription ?? ""
+
+            } else {
+                self.email = ""
+                self.password = ""
+                self.signInDone = true
             }
         }
     }

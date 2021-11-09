@@ -17,7 +17,7 @@ struct appLPSApp: App {
     
     var body: some Scene {
         WindowGroup {
-            LoginView()
+            MainView().environmentObject(FirebaseController())
         }
     }
 }

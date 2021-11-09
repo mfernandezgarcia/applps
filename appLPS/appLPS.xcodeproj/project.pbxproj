@@ -11,6 +11,8 @@
 		68050717A8C6A51CF475DADF /* Pods_appLPSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EFEBE12D40CEB518872829B9 /* Pods_appLPSTests.framework */; };
 		781D7765272F4170005F585D /* FirebaseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 781D7764272F4170005F585D /* FirebaseController.swift */; };
 		781D7767272F44A8005F585D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 781D7766272F44A8005F585D /* GoogleService-Info.plist */; };
+		78ABEAE8273A74EB00D2D74F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ABEAE7273A74EB00D2D74F /* MainView.swift */; };
+		78ABEAEA273A812000D2D74F /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ABEAE9273A812000D2D74F /* User.swift */; };
 		78DB2A4827273B9F00B8C121 /* appLPSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78DB2A4727273B9F00B8C121 /* appLPSApp.swift */; };
 		78DB2A4A27273B9F00B8C121 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78DB2A4927273B9F00B8C121 /* ContentView.swift */; };
 		78DB2A4C27273BA000B8C121 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 78DB2A4B27273BA000B8C121 /* Assets.xcassets */; };
@@ -49,6 +51,8 @@
 		6DBD4F6BBF1EBD8E11DFC8DC /* Pods-appLPSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-appLPSTests.release.xcconfig"; path = "Target Support Files/Pods-appLPSTests/Pods-appLPSTests.release.xcconfig"; sourceTree = "<group>"; };
 		781D7764272F4170005F585D /* FirebaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseController.swift; sourceTree = "<group>"; };
 		781D7766272F44A8005F585D /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		78ABEAE7273A74EB00D2D74F /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		78ABEAE9273A812000D2D74F /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		78DB2A4427273B9F00B8C121 /* appLPS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = appLPS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		78DB2A4727273B9F00B8C121 /* appLPSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = appLPSApp.swift; sourceTree = "<group>"; };
 		78DB2A4927273B9F00B8C121 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -149,7 +153,9 @@
 				78DB2A4B27273BA000B8C121 /* Assets.xcassets */,
 				78DB2A4D27273BA000B8C121 /* Preview Content */,
 				78E779B427313B6300D82684 /* LoginView.swift */,
+				78ABEAE7273A74EB00D2D74F /* MainView.swift */,
 				78E779B627313F1500D82684 /* RegistroView.swift */,
+				78ABEAE9273A812000D2D74F /* User.swift */,
 			);
 			path = appLPS;
 			sourceTree = "<group>";
@@ -427,10 +433,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				781D7765272F4170005F585D /* FirebaseController.swift in Sources */,
+				78ABEAE8273A74EB00D2D74F /* MainView.swift in Sources */,
 				78DB2A4A27273B9F00B8C121 /* ContentView.swift in Sources */,
 				78E779B527313B6300D82684 /* LoginView.swift in Sources */,
 				78DB2A4827273B9F00B8C121 /* appLPSApp.swift in Sources */,
 				78E779B727313F1500D82684 /* RegistroView.swift in Sources */,
+				78ABEAEA273A812000D2D74F /* User.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
