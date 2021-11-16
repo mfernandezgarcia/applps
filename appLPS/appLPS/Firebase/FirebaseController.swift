@@ -14,153 +14,181 @@ import Firebase
 import Combine
 import UIKit
 import FirebaseStorage
+import Photos
+
 
 class FirebaseController: ObservableObject {
     
     let storage = Storage.storage()
-    var imagenes: [Image] = []
+    @Published var imagenes: [Image] = []
+    @Published var refImagenesUsuario: [Data] = []
+    @Published var loading = false //TODO
     
-    func getData(correoUsuario: String)  -> [Image] {
-        let db = Firestore.firestore()
+    
+    var didChange = PassthroughSubject<FirebaseController, Never>()
+    var session: User? { didSet { self.didChange.send(self) }}
+    var handle: AuthStateDidChangeListenerHandle?
+    
+    
+    @available(iOS 15.0.0, *)
+    func getUserData(correoUsuario: String) async {
         
+        print("GETUSERDATA")
+        self.imagenes = []
+        self.refImagenesUsuario = []
+        await getAllStorage()
+        await getData(correoUsuario: correoUsuario)
+    }
+    
+  
+    
+    @available(iOS 15.0.0, *)
+    func getData(correoUsuario: String) async  {
+        let db = Firestore.firestore()
+
         db.collection("Files").getDocuments() { (querySnapshot, err) in
+            var storageRef: StorageReference
+            storageRef = self.storage.reference()
+            var ref: StorageReference
+            
+            
             if let err = err {
                 print("Error getting documents: \(err)")
             } else {
                 for document in querySnapshot!.documents {
                     print("\(document.documentID) => \(document.data())")
-                    
-                    /*if  (document.data()["name"] as! String) == correoUsuario {
-                     
-                     }*/
+                    if  (document.data()["email"] as! String) == correoUsuario {
+                        print("Foto del usuario \(document.documentID)")
+                        ref = storageRef.child("images/\(document.data()["name"] ?? "HOLA")")
+                        ref.getData(maxSize: 1048576) { (data, error) in
+                            guard let imageData = data, error == nil else {
+                                   return
+                               }
+                            self.refImagenesUsuario.append(imageData)
+
+                        }
+                    }
                 }
             }
         }
-        
-        
-        self.imagenes =  self.getAllStorage()
-        
-        print(" ------ AQUI")
-        print(self.imagenes)
-        print("AQUI ----- ")
-        
-        return self.imagenes
     }
     
-    func getAllStorage() -> [Image] {
+    
+    
+    @available(iOS 15.0.0, *)
+    func getAllStorage() async {
         let storageRef = storage.reference().child("images")
         
-        
-        
-        
-        /// async
         storageRef.listAll { (result, error) in
+            print("Por aqui ... ")
             if let error = error {
                 print("Error while listing all files: ", error)
             }
             
             for item in result.items {
                 print("Item in images folder: ", item)
-                print("METIENDOLO EN LA LISTA ----- ")
                 self.imagenes.append(Image(item.fullPath))
-                print("EIRHEIRHEREIROER----- ")
-                print( self.imagenes)
+            }
+        }
+    }
+    
+    @available(iOS 15.0.0, *)
+    func uploadStorage(image: UIImage, correoUsuario: String) async throws{
+        print("SUBIENDO FOOTO")
+
+        let nombreImagen = NSDate()
+        // https://designcode.io/swiftui-advanced-handbook-firebase-storage
+        let storageRef = storage.reference().child("images/\(nombreImagen)")
+        
+        /*let resizedImage = image.aspectFittedToHeight(200)*/
+        let data = image.jpegData(compressionQuality: 0.2)
+        
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpg"
+        
+        if let data = data {
+            storageRef.putData(data, metadata: metadata) { (metadata, error) in
+                if let error = error {
+                    print("Error while uploading file: ", error)
+                }
                 
+                if let metadata = metadata {
+                    print("Metadata: ", metadata)
+                }
             }
         }
-    
-    
-    
-    print("DEVOLVIENDO EL RESULTADO DESDE GETALLSOTRAGE----- ")
-    print( self.imagenes)
-    
-    return self.imagenes
-}
+        
+        let db = Firestore.firestore()
 
-func uploadStorage(image: UIImage) {
-    // https://designcode.io/swiftui-advanced-handbook-firebase-storage
-    let storageRef = storage.reference().child("images/\(NSDate())")
+        try await db.collection("Files").document("\(nombreImagen)").setData([
+            "email": correoUsuario,
+            "name": "\(nombreImagen)"
+        ])
+        
+        print("FOTO SUBIDA")
+
+        
+        await getUserData(correoUsuario: correoUsuario)
+        
+    }
     
-    /*let resizedImage = image.aspectFittedToHeight(200)*/
-    let data = image.jpegData(compressionQuality: 0.2)
-    
-    let metadata = StorageMetadata()
-    metadata.contentType = "image/jpg"
-    
-    if let data = data {
-        storageRef.putData(data, metadata: metadata) { (metadata, error) in
+    func deleteItemStorage(item: StorageReference) {
+        item.delete { error in
             if let error = error {
-                print("Error while uploading file: ", error)
-            }
-            
-            if let metadata = metadata {
-                print("Metadata: ", metadata)
+                print("Error deleting item", error)
             }
         }
     }
-}
-
-func deleteItemStorage(item: StorageReference) {
-    item.delete { error in
-        if let error = error {
-            print("Error deleting item", error)
+    
+        
+    func listen () {
+        // monitor authentication changes using firebase
+        handle = Auth.auth().addStateDidChangeListener { (auth, user) in
+            if let user = user {
+                // if we have a user, create a new user model
+                print("Got user: \(user)")
+                self.session = User(
+                    uid: user.uid,
+                    displayName: user.displayName,
+                    email: user.email
+                )
+            } else {
+                // if we don't have a user, set our session to nil
+                self.session = nil
+            }
         }
     }
-}
-
-
-var didChange = PassthroughSubject<FirebaseController, Never>()
-var session: User? { didSet { self.didChange.send(self) }}
-var handle: AuthStateDidChangeListenerHandle?
-
-func listen () {
-    // monitor authentication changes using firebase
-    handle = Auth.auth().addStateDidChangeListener { (auth, user) in
-        if let user = user {
-            // if we have a user, create a new user model
-            print("Got user: \(user)")
-            self.session = User(
-                uid: user.uid,
-                displayName: user.displayName,
-                email: user.email
-            )
-        } else {
-            // if we don't have a user, set our session to nil
+    
+    func signUp(
+        email: String,
+        password: String,
+        handler: @escaping AuthDataResultCallback
+    ) {
+        Auth.auth().createUser(withEmail: email, password: password, completion: handler)
+    }
+    
+    func signIn(
+        email: String,
+        password: String,
+        handler: @escaping AuthDataResultCallback
+    ) {
+        Auth.auth().signIn(withEmail: email, password: password, completion: handler)
+    }
+    
+    func signOut () -> Bool {
+        do {
+            try Auth.auth().signOut()
             self.session = nil
+            return true
+        } catch {
+            return false
         }
     }
-}
-
-func signUp(
-    email: String,
-    password: String,
-    handler: @escaping AuthDataResultCallback
-) {
-    Auth.auth().createUser(withEmail: email, password: password, completion: handler)
-}
-
-func signIn(
-    email: String,
-    password: String,
-    handler: @escaping AuthDataResultCallback
-) {
-    Auth.auth().signIn(withEmail: email, password: password, completion: handler)
-}
-
-func signOut () -> Bool {
-    do {
-        try Auth.auth().signOut()
-        self.session = nil
-        return true
-    } catch {
-        return false
+    
+    func unbind () {
+        if let handle = handle {
+            Auth.auth().removeStateDidChangeListener(handle)
+        }
     }
-}
-
-func unbind () {
-    if let handle = handle {
-        Auth.auth().removeStateDidChangeListener(handle)
-    }
-}
-
+    
 }
