@@ -16,37 +16,48 @@ import UIKit
 import FirebaseStorage
 import Photos
 
+// https://www.andyibanez.com/posts/understanding-async-await-in-swift/
+
 
 class FirebaseController: ObservableObject {
     
     let storage = Storage.storage()
-    @Published var imagenes: [Image] = []
-    @Published var refImagenesUsuario: [Data] = []
-    @Published var loading = false //TODO
+    // @Published var imagenes: [Image] = []
+    @Published var refImagenesUsuario: [UserImage] = []
+    @Published var loading = false
     
     
     var didChange = PassthroughSubject<FirebaseController, Never>()
     var session: User? { didSet { self.didChange.send(self) }}
     var handle: AuthStateDidChangeListenerHandle?
     
+    let queue = DispatchQueue(label: "Prueba", attributes: .concurrent);
+    let myGroup = DispatchGroup()
+    
+    // let semph = DispatchSemaphore(value: 0)
     
     @available(iOS 15.0.0, *)
-    func getUserData(correoUsuario: String) async {
-        
-        print("GETUSERDATA")
-        self.imagenes = []
+    func getUserData(correoUsuario: String) async
+    {
+        // self.imagenes = []
         self.refImagenesUsuario = []
-        await getAllStorage()
+        
+        
+        // await getAllStorage()
+        // sleep(2)
+        //self.semph.wait()
         await getData(correoUsuario: correoUsuario)
     }
     
-  
+    
     
     @available(iOS 15.0.0, *)
-    func getData(correoUsuario: String) async  {
+    func getData(correoUsuario: String) async {
         let db = Firestore.firestore()
-
-        db.collection("Files").getDocuments() { (querySnapshot, err) in
+        
+        db.collection("Files").getDocuments() { [self] (querySnapshot, err) in
+            print("EMPEZANDO GETDATA");
+            
             var storageRef: StorageReference
             storageRef = self.storage.reference()
             var ref: StorageReference
@@ -56,58 +67,120 @@ class FirebaseController: ObservableObject {
                 print("Error getting documents: \(err)")
             } else {
                 for document in querySnapshot!.documents {
-                    print("\(document.documentID) => \(document.data())")
                     if  (document.data()["email"] as! String) == correoUsuario {
-                        print("Foto del usuario \(document.documentID)")
-                        ref = storageRef.child("images/\(document.data()["name"] ?? "HOLA")")
-                        ref.getData(maxSize: 1048576) { (data, error) in
+                        ref = storageRef.child("images/\(document.data()["date"] ?? "none")")
+                        
+                        print("REF: \(ref)")
+                        
+                        ref.getData(maxSize: 10048576) { (data, error) in
                             guard let imageData = data, error == nil else {
-                                   return
-                               }
-                            self.refImagenesUsuario.append(imageData)
-
+                                return
+                            }
+                            
+                            let userImage = UserImage(
+                                name: document.data()["name"] as! String ,
+                                date: document.data()["date"] as! String ,
+                                email: document.data()["email"] as! String ,
+                                data: imageData
+                            );
+                            
+                            print( "IMAGE: \(userImage)")
+                            
+                            self.refImagenesUsuario.append(userImage)
                         }
                     }
                 }
-            }
+            }            
         }
     }
+      
     
-    
+    /*@available(iOS 15.0.0, *)
+     func getAllStorage() async {
+     let storageRef = storage.reference().child("images")
+     
+     storageRef.listAll { (result, error) in
+     
+     print("EMPEZANDO GETALLSOTRAGE");
+     
+     if let error = error {
+     print("Error while listing all files: ", error)
+     }
+     
+     for item in result.items {
+     self.imagenes.append(Image(item.fullPath))
+     }
+     
+     print("TERMINANDO GETALLSOTRAGE");
+     // self.myGroup.leave()
+     
+     // self.semph.signal()
+     }
+     
+     
+     print("DEVOLVIENDO GETALLSOTRAGE");
+     
+     }*/
     
     @available(iOS 15.0.0, *)
-    func getAllStorage() async {
-        let storageRef = storage.reference().child("images")
+    func uploadData(image: UIImage, correoUsuario: String, nombre: String, fecha: String)  {
+        let db = Firestore.firestore()
         
-        storageRef.listAll { (result, error) in
-            print("Por aqui ... ")
-            if let error = error {
-                print("Error while listing all files: ", error)
-            }
+        print("ANTES DEL DB COLLECTION")
+                
+        db.collection("Files").document("\(fecha)").setData([
             
-            for item in result.items {
-                print("Item in images folder: ", item)
-                self.imagenes.append(Image(item.fullPath))
+            "email": correoUsuario,
+            "name": nombre,
+            "date": "\(fecha)"
+        ]) { err in
+            if let err = err {
+                print(err.localizedDescription)
+            } else {
+                print("Todo hecho bien")
+
+                    Task {
+                        print("Se está haciendo esto")
+                        await self.getUserData(correoUsuario: "martafernandez16garcia@gmail.com")
+                    }
             }
         }
+        
+        
+        print("DESPUES DEL DB COLLECTION")
     }
     
     @available(iOS 15.0.0, *)
-    func uploadStorage(image: UIImage, correoUsuario: String) async throws{
-        print("SUBIENDO FOOTO")
 
-        let nombreImagen = NSDate()
-        // https://designcode.io/swiftui-advanced-handbook-firebase-storage
-        let storageRef = storage.reference().child("images/\(nombreImagen)")
+    func uploadStorage(image: UIImage, correoUsuario: String, nombre: String) {
+        let formater = DateFormatter()
+        formater.dateFormat = "yyyy-MM-dd HH:mm:ss"
         
-        /*let resizedImage = image.aspectFittedToHeight(200)*/
+        let fecha = formater.string(from: Date())
+
         let data = image.jpegData(compressionQuality: 0.2)
-        
         let metadata = StorageMetadata()
+        let storageRef = storage.reference().child("images/\(fecha)")
+        
         metadata.contentType = "image/jpg"
+
         
         if let data = data {
-            storageRef.putData(data, metadata: metadata) { (metadata, error) in
+            print("Empezando uploadstorage")
+            let uploadTask = storageRef.putData(data, metadata: metadata)
+            
+            
+            let observer = uploadTask.observe(.success) { snapshot in
+                print("OTROOOO")
+
+                self.uploadData(image: image, correoUsuario: correoUsuario, nombre: nombre, fecha: fecha)
+                
+                print("OTROOOO2222")
+
+            }
+            
+            
+            /*{ (metadata, error) in
                 if let error = error {
                     print("Error while uploading file: ", error)
                 }
@@ -115,22 +188,30 @@ class FirebaseController: ObservableObject {
                 if let metadata = metadata {
                     print("Metadata: ", metadata)
                 }
-            }
+            }*/
         }
         
-        let db = Firestore.firestore()
+        
 
-        try await db.collection("Files").document("\(nombreImagen)").setData([
-            "email": correoUsuario,
-            "name": "\(nombreImagen)"
-        ])
-        
-        print("FOTO SUBIDA")
-
-        
-        await getUserData(correoUsuario: correoUsuario)
-        
     }
+    
+    func deleteData(indexSet: IndexSet, correoUsuario: String) {
+        let db = Firestore.firestore()
+        var storageRef: StorageReference
+        storageRef = self.storage.reference()
+        
+        indexSet.forEach { index in
+            let userImage = self.refImagenesUsuario[index]
+            db.collection("Files").document(userImage.date).delete { error in
+                self.deleteItemStorage(item: storageRef.child("images/\(userImage.date)" ))
+                
+                if let error = error {
+                    print(error.localizedDescription)
+                }
+            }
+        }
+    }
+    
     
     func deleteItemStorage(item: StorageReference) {
         item.delete { error in
@@ -140,13 +221,13 @@ class FirebaseController: ObservableObject {
         }
     }
     
-        
+    
+    
     func listen () {
         // monitor authentication changes using firebase
         handle = Auth.auth().addStateDidChangeListener { (auth, user) in
             if let user = user {
                 // if we have a user, create a new user model
-                print("Got user: \(user)")
                 self.session = User(
                     uid: user.uid,
                     displayName: user.displayName,

@@ -11,6 +11,8 @@
 		68050717A8C6A51CF475DADF /* Pods_appLPSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EFEBE12D40CEB518872829B9 /* Pods_appLPSTests.framework */; };
 		781D7765272F4170005F585D /* FirebaseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 781D7764272F4170005F585D /* FirebaseController.swift */; };
 		781D7767272F44A8005F585D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 781D7766272F44A8005F585D /* GoogleService-Info.plist */; };
+		78424968274E4524004DDFC0 /* UserImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78424967274E4524004DDFC0 /* UserImage.swift */; };
+		784D2C70274A6AEA0014AE35 /* Wave.swift in Sources */ = {isa = PBXBuildFile; fileRef = 784D2C6F274A6AEA0014AE35 /* Wave.swift */; };
 		78ABEAE8273A74EB00D2D74F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ABEAE7273A74EB00D2D74F /* MainView.swift */; };
 		78ABEAEA273A812000D2D74F /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ABEAE9273A812000D2D74F /* User.swift */; };
 		78ABEAEC273A8A8300D2D74F /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ABEAEB273A8A8300D2D74F /* ImagePicker.swift */; };
@@ -52,6 +54,8 @@
 		6DBD4F6BBF1EBD8E11DFC8DC /* Pods-appLPSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-appLPSTests.release.xcconfig"; path = "Target Support Files/Pods-appLPSTests/Pods-appLPSTests.release.xcconfig"; sourceTree = "<group>"; };
 		781D7764272F4170005F585D /* FirebaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseController.swift; sourceTree = "<group>"; };
 		781D7766272F44A8005F585D /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		78424967274E4524004DDFC0 /* UserImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserImage.swift; sourceTree = "<group>"; };
+		784D2C6F274A6AEA0014AE35 /* Wave.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wave.swift; sourceTree = "<group>"; };
 		78ABEAE7273A74EB00D2D74F /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		78ABEAE9273A812000D2D74F /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		78ABEAEB273A8A8300D2D74F /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
@@ -123,6 +127,23 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		78424966274E44F5004DDFC0 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				78ABEAE9273A812000D2D74F /* User.swift */,
+				78424967274E4524004DDFC0 /* UserImage.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		784D2C6E274A6ADB0014AE35 /* Shapes */ = {
+			isa = PBXGroup;
+			children = (
+				784D2C6F274A6AEA0014AE35 /* Wave.swift */,
+			);
+			path = Shapes;
+			sourceTree = "<group>";
+		};
 		78DB2A3B27273B9F00B8C121 = {
 			isa = PBXGroup;
 			children = (
@@ -148,6 +169,8 @@
 		78DB2A4627273B9F00B8C121 /* appLPS */ = {
 			isa = PBXGroup;
 			children = (
+				78424966274E44F5004DDFC0 /* Models */,
+				784D2C6E274A6ADB0014AE35 /* Shapes */,
 				78E779B327313A5B00D82684 /* Firebase */,
 				781D7766272F44A8005F585D /* GoogleService-Info.plist */,
 				78DB2A4727273B9F00B8C121 /* appLPSApp.swift */,
@@ -157,7 +180,6 @@
 				78E779B427313B6300D82684 /* LoginView.swift */,
 				78ABEAE7273A74EB00D2D74F /* MainView.swift */,
 				78E779B627313F1500D82684 /* RegistroView.swift */,
-				78ABEAE9273A812000D2D74F /* User.swift */,
 			);
 			path = appLPS;
 			sourceTree = "<group>";
@@ -435,9 +457,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				78424968274E4524004DDFC0 /* UserImage.swift in Sources */,
 				781D7765272F4170005F585D /* FirebaseController.swift in Sources */,
 				78ABEAE8273A74EB00D2D74F /* MainView.swift in Sources */,
 				78DB2A4A27273B9F00B8C121 /* ContentView.swift in Sources */,
+				784D2C70274A6AEA0014AE35 /* Wave.swift in Sources */,
 				78E779B527313B6300D82684 /* LoginView.swift in Sources */,
 				78DB2A4827273B9F00B8C121 /* appLPSApp.swift in Sources */,
 				78ABEAEC273A8A8300D2D74F /* ImagePicker.swift in Sources */,
@@ -604,6 +628,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"appLPS/Preview Content\"";
+				DEVELOPMENT_TEAM = RSNLB3633K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -634,6 +659,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"appLPS/Preview Content\"";
+				DEVELOPMENT_TEAM = RSNLB3633K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
