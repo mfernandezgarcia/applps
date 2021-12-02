@@ -14,18 +14,14 @@ struct RegistroView: View {
     @State var signUpDone: Bool = false
     @State var errorFound: String = ""
     @State var error: Bool = false
-    @State var loading = false
     @State var visible = false
     
-    
     @EnvironmentObject var session: FirebaseController
-    
     
     var body: some View {
         GeometryReader { geometry in
             
             if #available(iOS 15.0, *) {
-                
                 Form {
                     HStack {
                         TextField("Email" , text: $email).textCase(.lowercase)
@@ -77,12 +73,10 @@ struct RegistroView: View {
     }
     
     func signUp () {
-        signUpDone = false
-        errorFound = ""
-        loading = true
-        error = false
-        session.signUp(email: email, password: password) { (result, error) in
-            self.loading = false
+        self.signUpDone = false
+        self.errorFound = ""
+        self.error = false
+        self.session.signUp(email: email, password: password) { (result, error) in
             if error != nil {
                 self.error = true
                 self.errorFound = error?.localizedDescription ?? ""

@@ -21,7 +21,8 @@ struct appLPSApp: App {
                 Color("backgroundP").ignoresSafeArea()
                 VStack {
                         Wave().fill(Color.accentColor).frame(height: 150).overlay(
-                            Text("Firebase App").font(.title).fontWeight(.bold).foregroundColor(.white)
+                            //Text("Firebase App").font(.title).fontWeight(.bold).foregroundColor(.white)
+                            Image("logoBlancoColor").resizable().frame(width: 239 , height: 68 ,alignment: .center)
                         )
                     
                     MainView().background(Color("backgroundP")).ignoresSafeArea().environmentObject(FirebaseController()).onAppear(perform: UIApplication.shared.addTapGestureRecognizer)
