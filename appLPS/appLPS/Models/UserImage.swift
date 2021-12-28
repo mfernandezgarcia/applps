@@ -20,5 +20,4 @@ struct UserImage: Hashable {
         self.email = email
         self.data = data
     }
-
 }

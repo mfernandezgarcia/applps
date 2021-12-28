@@ -24,58 +24,61 @@ struct MainView: View {
                 NavigationView {
                     VStack {
                         VStack {
-                            Text("Your pictures").font(.title).fontWeight(.bold)
-                            if (session.refImagenesUsuario.count == 0) {
+                            if (session.loading == true){
                                 Text("Loading...")
                                 ProgressView()
-                            }
-                            
-                            VStack {
+                            }else if (session.empty && session.refImagenesUsuario.count == 0) {
                                 Spacer()
-                                
-                                List {
-                                    ForEach(session.refImagenesUsuario, id: \.self) { userImage in
-                                        NavigationLink(destination: EditImagenView(image: userImage).environmentObject(session), isActive: $editImage ) {
-                                            FilaView(userImage: userImage)
-                                        }.listRowSeparator(.hidden).background(RoundedRectangle(cornerRadius: 10).fill(Color("filaBackground"))).listRowInsets(EdgeInsets())
-                                        Spacer(minLength: 3)
-                                    }.onDelete { indexSet in
-                                        session.deleteData(indexSet: indexSet, correoUsuario: session.session?.email ?? "none" )
-                                        Task {
-                                            await session.getUserData(correoUsuario: session.session?.email ?? "none")
-                                        }
-                                    }//.listRowInsets(.init(top:0, leading: 0, bottom: 10, trailing: 0))
-                                        
-                                }.onAppear {
-                                    UITableView.appearance().backgroundColor = .clear
+                                Text("No pictures found 🙁").padding().background(Color(UIColor.systemGray5)).cornerRadius(10)
+                                Spacer()
+                                Spacer()
+                            } else {
+                                VStack(alignment: .leading) {
+                                    HStack {
+                                        Image(systemName: "photo").foregroundColor(Color(UIColor.systemGray)).font(.footnote)
+                                        Text("Total: \(session.refImagenesUsuario.count)").foregroundColor(Color(UIColor.systemGray)).font(.footnote)
+                                        Spacer()
+                                    }.padding(.leading, 20)
+                                    List {
+                                        ForEach(session.refImagenesUsuario, id: \.self) { userImage in
+                                            NavigationLink(destination: EditImagenView(image: userImage).environmentObject(session), isActive: $editImage ) {
+                                                FilaView(userImage: userImage)
+                                            }.background(Color("backgroundP"))
+                                        }.onDelete { indexSet in
+                                            session.deleteData(indexSet: indexSet, correoUsuario: session.session?.email ?? "none" )
+                                            Task {
+                                                await session.getUserData(correoUsuario: session.session?.email ?? "none")
+                                            }
+                                        }.listRowBackground(Color("backgroundP"))
+                                    }.listStyle(.plain)
+
+                                    .onAppear {
+                                        UITableView.appearance().backgroundColor = .clear
+                                    }
+                                    Spacer()
                                 }
-                                Spacer()
-                            }.frame(maxWidth: .infinity, maxHeight: .infinity)
-                            
+                            }
                         }.onAppear {
                             Task {
-                                 await session.getUserData(correoUsuario: (session.session?.email)!)
+                                await session.getUserData(correoUsuario: (session.session?.email)!)
                             }
                         }
-                        
                         Divider()
                         Spacer()
-                        
                         Button() {
                             session.signOut()
                             self.signInDone = false
                         } label: {
                             Text("Log out")
                         }.padding().background(Color.accentColor).foregroundColor(Color.white).clipShape(Capsule())
-                        
-                    }.navigationBarTitle("Home")
+                        Spacer()
+                    }.navigationBarTitle("Pictures")
                         .navigationBarItems(trailing:
                                                 Button(){
                             mostrarAddImagen.toggle()
                         }label:{
                             Image(systemName:"plus.circle").frame(width:30, height: 30).foregroundColor(Color.accentColor)
                         }
-                                            
                         ).sheet(isPresented: $mostrarAddImagen) {
                         } content: {
                             AddImagenView(imageGeneral: $imageGeneral, guardarFoto: $guardarFoto, nombreImagen: $nombreImage).environmentObject(session)
@@ -83,7 +86,7 @@ struct MainView: View {
                         .onAppear {
                             getUser()
                         }.background(Color("backgroundP"))
-
+                    
                 }.ignoresSafeArea()
             }else {
                 LoginView(signInDone: self.$signInDone)
@@ -94,7 +97,6 @@ struct MainView: View {
     func getUser () {
         session.listen()
     }
-    
 }
 
 struct EditImagenView: View {
@@ -102,33 +104,44 @@ struct EditImagenView: View {
     @State var nombreImagen = ""
     @State var showingAlert: Bool = false
     @EnvironmentObject var session: FirebaseController
-
+    
     var body: some View{
-        Image(uiImage: UIImage(data: image.data)!).resizable().frame(width: 90, height:90).cornerRadius(10)
         
-        
-        TextField("Nombre de imagen", text:$nombreImagen)
-            .padding().background(Color.gray.opacity(self.nombreImagen == "" ? 0.1 : 0.2 )).cornerRadius(10)
-            .frame(width: UIScreen.main.bounds.midX)
-
-        HStack {
-            if #available(iOS 15.0, *) {
-                Button(){
-                    session.updateData(image: image, correoUsuario: image.email, nuevoNombre: nombreImagen)
-                    showingAlert = true
-
-                }label:{
-                    Text("Guardar")
-                }.padding().background(Color.accentColor).foregroundColor(Color.white).clipShape(Capsule())
-                    .alert("Your image has been edited successfully", isPresented: $showingAlert) {
-                        Button("OK", role: .cancel) { }
-                    }
+        VStack {
+            Spacer()
+            Spacer()
+            VStack {
+                Image(uiImage: UIImage(data: image.data)!)
+                    .resizable()
+                       .frame(width: 200, height:200)
+                       .cornerRadius(20)
+                       .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.accentColor, lineWidth: 3))
+                       .padding()
                 
-            }
-        }.onAppear {
-            nombreImagen = image.name
-        }
+                TextField("Nombre de imagen", text:$nombreImagen)
+                    .padding().background(Color.gray.opacity(self.nombreImagen == "" ? 0.1 : 0.2 )).cornerRadius(10)
+                    .frame(width: UIScreen.main.bounds.midX)
+            }.padding().background(Color("backgroundP")).cornerRadius(30)
 
+            Spacer()
+            HStack {
+                if #available(iOS 15.0, *) {
+                    Button(){
+                        session.updateData(image: image, correoUsuario: image.email, nuevoNombre: nombreImagen)
+                        showingAlert = true
+                    }label:{
+                        Text("Save")
+                    }.padding(.leading, 30).padding(.trailing, 30).padding(.top, 15).padding(.bottom, 15).background(Color.accentColor).foregroundColor(Color.white).clipShape(Capsule())
+                        .alert("Your image has been edited successfully", isPresented: $showingAlert) {
+                            Button("OK", role: .cancel) { }
+                        }
+                }
+            }.onAppear {
+                nombreImagen = image.name
+            }
+            Spacer()
+            Spacer()
+        }.frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height).background(Color("backgroundP"))
     }
 }
 
@@ -136,38 +149,46 @@ struct AddImagenView: View {
     @State var mostrarImagePicker: Bool = false
     @Binding var imageGeneral: UIImage
     @Binding var guardarFoto: Bool
-    
     @Binding var nombreImagen: String
     @EnvironmentObject var session: FirebaseController
-    
+    @State var changed = false
     @Environment(\.presentationMode) var modoPresentacion
     
     var body: some View{
         VStack {
+            Text("New image").font(.largeTitle).fontWeight(.bold)
             Button(){
                 mostrarImagePicker.toggle() }label:{
-                    Image(uiImage: imageGeneral) .resizable()
-                        .frame(width: 200, height:200)
-                        .cornerRadius(100)
-                        .overlay(RoundedRectangle(cornerRadius: 100).stroke(Color.accentColor, lineWidth: 2))
-                        .padding(.vertical)
-                    
+                    if ( changed ) {
+                        Image(uiImage: imageGeneral) .resizable()
+                            .frame(width: 200, height:200)
+                            .cornerRadius(20)
+                            .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.accentColor, lineWidth: 3))
+                            .padding(.vertical)
+                    } else {
+                        Image("placeholder") .resizable()
+                            .frame(width: 200, height:200)
+                            .cornerRadius(20)
+                            .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.accentColor, lineWidth: 3))
+                            .padding(.vertical)
+                    }
                 }
                 .sheet(isPresented: $mostrarImagePicker){
-                    ImagePicker(sourceType: .photoLibrary, selectedImage: $imageGeneral )
+                    ImagePicker(sourceType: .photoLibrary, selectedImage: $imageGeneral, changed: $changed )
                 }
             
-            TextField("Nombre de imagen", text:$nombreImagen)
+            TextField("Name", text:$nombreImagen)
                 .padding().background(Color.gray.opacity(self.nombreImagen == "" ? 0.1 : 0.2 )).cornerRadius(10)
                 .frame(width: UIScreen.main.bounds.midX)
-
+            
+            Spacer().frame(height: 20)
             HStack {
                 Button(){
                     guardarFoto = false
                     modoPresentacion.wrappedValue.dismiss()
                 }label:{
-                    Text("Cancelar")
-                }.padding().background(Color.gray).foregroundColor(Color.white).clipShape(Capsule())
+                    Text("Cancel")
+                }.padding(.leading, 30).padding(.trailing, 30).padding(.top, 15).padding(.bottom, 15).background(Color.gray).foregroundColor(Color.white).clipShape(Capsule())
                 
                 if #available(iOS 15.0, *) {
                     Button(){
@@ -176,9 +197,8 @@ struct AddImagenView: View {
                         modoPresentacion.wrappedValue.dismiss()
                         
                     }label:{
-                        Text("Guardar")
-                    }.disabled(imageGeneral.pngData() == nil).padding().background(Color.accentColor).foregroundColor(Color.white).clipShape(Capsule())
-                    
+                        Text("Save")
+                    }.disabled(imageGeneral.pngData() == nil || nombreImagen.isEmpty ).padding(.leading, 30).padding(.trailing, 30).padding(.top, 15).padding(.bottom, 15).background(imageGeneral.pngData() == nil || nombreImagen.isEmpty ? Color.accentColor.opacity(0.5) : Color.accentColor).foregroundColor(Color.white).clipShape(Capsule())
                 }
             }
         }.onDisappear() {

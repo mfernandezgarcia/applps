@@ -15,25 +15,16 @@ struct LoginView: View {
     @State var error: Bool = false
     @State var loading = false
     @State var visible = false
-    
     @Binding var signInDone: Bool
-    
     @State var showResetView = false
     @State var enResetPassword = false
-    
     @EnvironmentObject var session: FirebaseController
     @Environment(\.colorScheme) var colorScheme
     
     init(signInDone: Binding<Bool>) {
         self._signInDone = signInDone
-        
-        // Todas estas propiedades se hacen a nivel global por lo que solo es necesario indicarlo una vez
-        UITableView.appearance().backgroundColor = .clear
-        UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: (colorScheme == .dark) ? UIColor.white : UIColor.black]
-        UITableView.appearance().separatorStyle = .none
-        UINavigationBar.appearance().tintColor = (colorScheme == .dark) ? .white : .black
         UINavigationBar.appearance().backgroundColor = UIColor(named:"backgroundP")
-        UINavigationBar.appearance().tintColor = UIColor(named:"Color")
+        UINavigationBar.appearance().tintColor = UIColor(named: "Color")
         UITableViewCell.appearance().backgroundColor = .clear
     }
     
@@ -41,14 +32,12 @@ struct LoginView: View {
         NavigationView {
             GeometryReader { geometry in
                 if #available(iOS 15.0, *) {
-                    ZStack {
-                        Color("backgroundP")
-                        
-                        Form {
+                    VStack(alignment: .leading) {
+                        Spacer()
+                        VStack(alignment: .leading) {
                             HStack {
                                 TextField("Email" , text: $email)
                                 Image(systemName: "envelope.fill").foregroundColor(self.email != "" ? Color.accentColor: Color.gray)
-                                
                             }.padding().background(Color.gray.opacity(self.email == "" ? 0.1 : 0.2 )).cornerRadius(10).listRowSeparator(.hidden)
                             
                             HStack {
@@ -64,7 +53,6 @@ struct LoginView: View {
                                     Image(systemName: self.visible ? "eye.fill" : "eye.slash.fill").foregroundColor(self.password != "" ? Color.accentColor: Color.gray)
                                 }
                             }.padding().background(Color.gray.opacity(self.password == "" ? 0.1 : 0.2 )).cornerRadius(10).listRowSeparator(.hidden)
-                            
                             
                             Button() {
                                 showResetView.toggle()
@@ -84,34 +72,36 @@ struct LoginView: View {
                                 Spacer()
                             }
                             
-                            NavigationLink(destination: RegistroView()) {
-                                Text("Sign Up")
-                            }.listRowSeparator(.hidden)
-                            
+                            HStack {
+                                NavigationLink(destination: RegistroView()) {
+                                    Text("Sign Up").foregroundColor(Color("Color"))
+                                    Spacer()
+                                    Image(systemName: "chevron.right").foregroundColor(Color.gray)
+                                }
+                            }
                             if !errorFound.isEmpty {
                                 if !signInDone {
                                     Text(self.errorFound).foregroundColor(.red).listRowSeparator(.hidden)
                                 }
                             }
-                        }.cornerRadius(50).padding().frame(width: geometry.size.width, height: 450, alignment: .center).navigationTitle("Sign In")
-
-                    }
-
-                    
+                        }.padding()
+                        Spacer()
+                        
+                    }.ignoresSafeArea().navigationTitle("Log in").background(Color("backgroundP"))
                 }
             }
-        }.ignoresSafeArea().navigationTitle("Log in")
-            .onAppear {
-                self.password = ""
-                self.email = ""
-                self.errorFound = ""
-            }.toolbar(content: {
-                ToolbarItem(placement: .bottomBar) {
-                    HStack {
-                        Text("Marta Fernández & Alejandro Roca").foregroundColor(.accentColor)
-                    }
+        }
+        .onAppear {
+            self.password = ""
+            self.email = ""
+            self.errorFound = ""
+        }.toolbar(content: {
+            ToolbarItem(placement: .bottomBar) {
+                HStack {
+                    Text("Marta Fernández & Alejandro Roca").foregroundColor(.accentColor)
                 }
-            })
+            }
+        })
     }
     
     func login () {
@@ -132,39 +122,33 @@ struct LoginView: View {
 }
 
 struct ResetPasswordView: View {
-    
     @State var email: String = ""
     @Environment(\.presentationMode) var modoPresentacion
     @EnvironmentObject var session: FirebaseController
-   
-    
     var body: some View{
-        
         GeometryReader { geometry in
             VStack {
-                //Spacer()
-                Text("Reset your password").font(.title).fontWeight(.bold)
-                Form {
+                Spacer()
+                Spacer()
+                VStack {
+                    Text("Reset your password").font(.title).fontWeight(.bold)
                     if #available(iOS 15.0, *) {
                         HStack {
                             TextField("Email" , text: $email)
                             Image(systemName: "envelope.fill").foregroundColor(self.email != "" ? Color.accentColor: Color.gray)
-                            
                         }.padding().background(Color.gray.opacity(self.email == "" ? 0.1 : 0.2 )).cornerRadius(10).listRowSeparator(.hidden)
-                        
                         HStack {
                             Spacer()
                             Button() {
                                 session.resetPassword(email: email)
                                 modoPresentacion.wrappedValue.dismiss()
-
                             } label: {
                                 Text("Reset")
                             }.padding().frame(width: UIScreen.main.bounds.width/1.5, alignment: .center).foregroundColor(.white).background(Color.accentColor).clipShape(Capsule())
                             Spacer()
                         }
                     }
-                }.position(x: geometry.frame(in: .local).midX, y: geometry.frame(in: .local).midY)
+                }.padding().position(x: geometry.frame(in: .local).midX, y: geometry.frame(in: .local).midY)
             }
         }
     }

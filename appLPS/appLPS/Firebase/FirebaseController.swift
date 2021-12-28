@@ -5,39 +5,25 @@
 //  Created by Marta Fernandez Garcia on 31/10/21.
 //
 
-import Foundation
-
-import Firebase
 import FirebaseAuth
 import FirebaseDatabase
-import SwiftUI
 import Firebase
-import Combine
-import UIKit
 import FirebaseStorage
-import Photos
-
-// https://www.andyibanez.com/posts/understanding-async-await-in-swift/
-
 
 class FirebaseController: ObservableObject {
-    
     let storage = Storage.storage()
-    // @Published var imagenes: [Image] = []
     @Published var refImagenesUsuario: [UserImage] = []
     @Published var loading = false
+    @Published var empty = true
     
-    
-    //var didChange = PassthroughSubject<FirebaseController, Never>()
-    var session: User? //{ didSet { self.didChange.send(self) }}
+    var session: User?
     var handle: AuthStateDidChangeListenerHandle?
-    
-    let queue = DispatchQueue(label: "Prueba", attributes: .concurrent);
-    let myGroup = DispatchGroup()
-    
+
     @available(iOS 15.0.0, *)
     func getUserData(correoUsuario: String) async
     {
+        self.loading = true
+        self.empty = true
         let db = Firestore.firestore()
         self.refImagenesUsuario = []
         
@@ -51,8 +37,8 @@ class FirebaseController: ObservableObject {
             } else {
                 for document in querySnapshot!.documents {
                     if  (document.data()["email"] as! String) == correoUsuario {
+                        self.empty = false
                         ref = storageRef.child("images/\(document.data()["date"] ?? "none")")
-                                            
                         ref.getData(maxSize: 10048576) { (data, error) in
                             guard let imageData = data, error == nil else {
                                 return
@@ -66,16 +52,19 @@ class FirebaseController: ObservableObject {
                             );
                             
                             self.refImagenesUsuario.append(userImage)
+                            self.loading = false
                         }
                     }
                 }
             }
+            self.loading = false
         }
     }
     
     
     @available(iOS 15.0.0, *)
     func uploadData(image: UIImage, correoUsuario: String, nombre: String, fecha: String)  {
+        self.loading = true
         let db = Firestore.firestore()
                         
         db.collection("Files").document("\(fecha)").setData([
@@ -84,8 +73,10 @@ class FirebaseController: ObservableObject {
             "date": "\(fecha)"
         ]) { err in
             if let err = err {
+                self.loading = false
                 print(err.localizedDescription)
             } else {
+                self.loading = false
                     Task {
                         await self.getUserData(correoUsuario: correoUsuario)
                     }
@@ -97,13 +88,10 @@ class FirebaseController: ObservableObject {
     func uploadStorage(image: UIImage, correoUsuario: String, nombre: String) {
         let formater = DateFormatter()
         formater.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        
         let fecha = formater.string(from: Date())
-
         let data = image.jpegData(compressionQuality: 0.2)
         let metadata = StorageMetadata()
         let storageRef = storage.reference().child("images/\(fecha)")
-        
         metadata.contentType = "image/jpg"
 
         if let data = data {
@@ -131,7 +119,6 @@ class FirebaseController: ObservableObject {
         var storageRef: StorageReference
         storageRef = self.storage.reference()
         
-        
         indexSet.forEach { index in
             let userImage = self.refImagenesUsuario[index]
             db.collection("Files").document(userImage.date).delete { error in
@@ -144,7 +131,6 @@ class FirebaseController: ObservableObject {
         }
     }
     
-    
     func deleteItemStorage(item: StorageReference) {
         item.delete { error in
             if let error = error {
@@ -152,8 +138,6 @@ class FirebaseController: ObservableObject {
             }
         }
     }
-    
-    
     
     func listen () {
         // monitor authentication changes using firebase

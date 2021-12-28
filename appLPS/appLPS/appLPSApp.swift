@@ -18,9 +18,9 @@ struct appLPSApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack{
-                Color("backgroundP").ignoresSafeArea()
+                //Color("backgroundP").ignoresSafeArea()
                 VStack {
-                        Wave().fill(Color.accentColor).frame(height: 150).overlay(
+                        Wave().fill(Color.accentColor).frame(height: 120).overlay(
                             //Text("Firebase App").font(.title).fontWeight(.bold).foregroundColor(.white)
                             Image("logoBlancoColor").resizable().frame(width: 239 , height: 68 ,alignment: .center)
                         )

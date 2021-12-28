@@ -22,14 +22,12 @@ struct RegistroView: View {
         GeometryReader { geometry in
             
             if #available(iOS 15.0, *) {
-                Form {
+                VStack {
                     HStack {
-                        TextField("Email" , text: $email).textCase(.lowercase)
+                        TextField("Email" , text: $email)
                         Image(systemName: "envelope.fill").foregroundColor(self.email != "" ? Color.accentColor: Color.gray)
-                        
                     }.padding().background(Color.gray.opacity(self.email == "" ? 0.1 : 0.2 )).cornerRadius(10).listRowSeparator(.hidden)
-                                        
-                    
+
                     HStack {
                         if self.visible {
                             TextField("Password" , text: $password)
@@ -60,14 +58,15 @@ struct RegistroView: View {
                         Text("Sign up done correctly. Please login").listRowSeparator(.hidden).foregroundColor(.green)
                     }
                     
+                    Spacer()
                     
-                }.padding().frame(width: geometry.size.width, height: 450).navigationTitle("Sign Up")
+                }.padding().navigationTitle("Sign Up")
                     .onAppear {
                         self.signUpDone = false
                         self.password = ""
                         self.email = ""
                         self.errorFound = ""
-                    }.background(Color("backgroundP"))
+                    }.frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height).background(Color("backgroundP"))
             }
         }
     }
